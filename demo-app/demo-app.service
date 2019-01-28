@@ -1,0 +1,11 @@
+[Unit]
+Description=Demo App
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/usr/bin/demo-app
+
+[Install]
+WantedBy=multi-user.target

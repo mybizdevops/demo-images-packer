@@ -1,0 +1,48 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+        "vpc_id": "{{env `AWS_VPC_ID`}}",
+        "subnet_id": "{{env `AWS_SUBNET_ID`}}"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "eu-west-1",
+            "source_ami_filter": {
+                "filters": {
+                    "name": "ubuntu-bionic-18.04-amd64-server-20180522-dotnetcore-2018.07.11",
+                    "root-device-type": "ebs"
+                },
+                "owners": ["amazon"],
+                "most_recent": true
+            },
+            "instance_type": "t2.micro",
+            "ssh_username": "ubuntu",
+            "ami_name": "demo-app-{{timestamp}}",
+            "vpc_id": "{{user `vpc_id`}}",
+            "subnet_id": "{{user `subnet_id`}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "demo-app.service",
+            "destination": "/tmp/demo-app.service"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "wget https://github.com/mybizdevops/demo-app/releases/download/v0.1.1/demo-app_0.1.1_Linux_x86_64.tar.gz -O /tmp/demo-app.tgz",
+                "tar -xzf /tmp/demo-app.tgz -C /tmp",
+                "sudo mv /tmp/demo-app /usr/bin/demo-app",
+                "sudo mv /tmp/demo-app.service /lib/systemd/system/demo-app.service",
+                "sudo systemctl daemon-reload",
+                "sudo systemctl start demo-app",
+                "sudo systemctl enable demo-app"
+            ]
+        }
+    ]
+}
